@@ -30,9 +30,11 @@ app.config.from_object(Config)
 ALLOWED_ORIGINS = [
     'https://marioaran.github.io',
     'https://marioaran.github.io/HkHotels',
+    'https://marioaran.github.io',
     'http://localhost:3000',   # Desarrollo local React
     'http://localhost:5500',   # Desarrollo local VS Code
     'http://localhost:5000'    # Desarrollo local Flask
+    'http://localhost:5432'    # Desarrollo local Flask
 ]
 
 @app.after_request

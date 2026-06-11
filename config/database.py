@@ -5,19 +5,36 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import g
+from urllib.parse import urlparse
 
 
 def get_db_connection():
     """Obtiene una conexión a la base de datos"""
     if 'db' not in g:
-        g.db = psycopg2.connect(
-            host=os.environ.get('DB_HOST', 'localhost'),
-            port=os.environ.get('DB_PORT', '5432'),
-            database=os.environ.get('DB_NAME', 'hk_hotel_db'),
-            user=os.environ.get('DB_USER', 'postgres'),
-            password=os.environ.get('DB_PASSWORD', ''),
-            cursor_factory=RealDictCursor
-        )
+        database_url = os.environ.get('DATABASE_URL', '')
+        
+        if database_url:
+            # Parsear DATABASE_URL (formato: postgresql://user:pass@host:port/dbname)
+            result = urlparse(database_url)
+            g.db = psycopg2.connect(
+                host=result.hostname,
+                port=result.port or 5432,
+                database=result.path[1:],  # Quitar el '/' inicial
+                user=result.username,
+                password=result.password,
+                sslmode='require',
+                cursor_factory=RealDictCursor
+            )
+        else:
+            # Fallback a variables individuales
+            g.db = psycopg2.connect(
+                host=os.environ.get('DB_HOST', 'localhost'),
+                port=os.environ.get('DB_PORT', '5432'),
+                database=os.environ.get('DB_NAME', 'hk_hotel_db'),
+                user=os.environ.get('DB_USER', 'postgres'),
+                password=os.environ.get('DB_PASSWORD', ''),
+                cursor_factory=RealDictCursor
+            )
     return g.db
 
 
