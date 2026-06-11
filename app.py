@@ -3,7 +3,7 @@ HK HOTELS - Backend API (Flask + PostgreSQL)
 Desplegado en Render: https://hkhotels-backend.onrender.com
 """
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, make_response
 from dotenv import load_dotenv
 from config.database import init_db
 from config.settings import Config
@@ -20,8 +20,85 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Configurar CORS
-configure_cors(app)
+# ============================================
+# CONFIGURACIÓN CORS PERSONALIZADA
+# - GET: permite cualquier origen
+# - POST/PUT/DELETE: solo desde GitHub Pages
+# ============================================
+
+# Orígenes permitidos para métodos que no son GET
+ALLOWED_ORIGINS = [
+    'https://marioaran.github.io',
+    'https://marioaran.github.io/HkHotels',
+    'http://localhost:3000',   # Desarrollo local React
+    'http://localhost:5500',   # Desarrollo local VS Code
+    'http://localhost:5000'    # Desarrollo local Flask
+]
+
+@app.after_request
+def apply_cors(response):
+    """Aplica CORS según el método HTTP"""
+    origin = request.headers.get('Origin')
+    method = request.method
+    
+    # GET, OPTIONS, HEAD: permitir cualquier origen
+    if method in ['GET', 'OPTIONS', 'HEAD']:
+        if origin:
+            response.headers['Access-Control-Allow-Origin'] = origin
+        else:
+            response.headers['Access-Control-Allow-Origin'] = '*'
+    else:
+        # POST, PUT, DELETE, etc.: solo orígenes permitidos
+        environment = os.environ.get('FLASK_ENV', 'development')
+        allowed = ALLOWED_ORIGINS.copy()
+        
+        # En desarrollo, permitir más orígenes
+        if environment == 'development':
+            allowed.extend([
+                'http://localhost:3000',
+                'http://localhost:5500',
+                'http://localhost:5000'
+            ])
+        
+        if origin in allowed:
+            response.headers['Access-Control-Allow-Origin'] = origin
+        else:
+            response.headers['Access-Control-Allow-Origin'] = ''
+    
+    # Headers comunes para todas las respuestas
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, HEAD'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Max-Age'] = '86400'
+    response.headers['Vary'] = 'Origin'
+    
+    return response
+
+@app.route('/api/<path:path>', methods=['OPTIONS'])
+@app.route('/api', methods=['OPTIONS'], defaults={'path': ''})
+def handle_options(path):
+    """Maneja peticiones OPTIONS (preflight)"""
+    response = make_response()
+    origin = request.headers.get('Origin')
+    
+    if origin:
+        response.headers['Access-Control-Allow-Origin'] = origin
+    else:
+        response.headers['Access-Control-Allow-Origin'] = '*'
+    
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, HEAD'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Max-Age'] = '86400'
+    
+    return response, 200
+
+# ============================================
+# FIN CONFIGURACIÓN CORS
+# ============================================
+
+# Configurar CORS adicional (si tu middleware tiene más configuraciones)
+# configure_cors(app)  # Descomenta si necesitas configuraciones extras
 
 # Inicializar base de datos
 init_db(app)

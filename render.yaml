@@ -28,7 +28,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://marioaran.github.io/HkHotels
+        value: "*"
       - key: FLASK_ENV
         value: production
 
