@@ -1,0 +1,1 @@
+# Configuración del backend HK Hotels

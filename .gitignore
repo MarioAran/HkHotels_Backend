@@ -1,0 +1,29 @@
+# Entorno virtual
+venv/
+env/
+.venv/
+
+# Archivos de entorno
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de logs
+logs/*
+!logs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Distribución
+dist/
+build/
+*.egg-info/

@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: hkhotels-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: hkhotels-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: hkhotels-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: hkhotels-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: hkhotels-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: hkhotels-db
+          property: password
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://hkhotels.github.io
+      - key: FLASK_ENV
+        value: production
+
+databases:
+  - name: hkhotels-db
+    plan: free
+    databaseName: hk_hotel_db
