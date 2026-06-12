@@ -72,6 +72,63 @@ def crear_reserva():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
+@reservas_bp.route('/reservas/<int:id>/cancelar', methods=['POST'])
+def cancelar_reserva(id):
+    \"\"\"Cancela una reserva por ID (verifica email del cliente)\"\"\"
+    datos = request.get_json(silent=True) or {}
+    email = datos.get('email', '').strip().lower()
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Obtener reserva
+        cursor.execute(
+            "SELECT id, email, estado FROM reservas WHERE id = %s",
+            (id,)
+        )
+        reserva = cursor.fetchone()
+
+        if not reserva:
+            cursor.close()
+            return jsonify({
+                "success": False,
+                "message": "Reserva no encontrada"
+            }), 404
+
+        # Verificar email
+        if reserva['email'].lower() != email:
+            cursor.close()
+            return jsonify({
+                "success": False,
+                "message": "El email no coincide con la reserva"
+            }), 403
+
+        if reserva['estado'] == 'cancelada':
+            cursor.close()
+            return jsonify({
+                "success": False,
+                "message": "La reserva ya está cancelada"
+            }), 400
+
+        # Cancelar reserva
+        cursor.execute(
+            "UPDATE reservas SET estado = 'cancelada' WHERE id = %s",
+            (id,)
+        )
+        conn.commit()
+        cursor.close()
+
+        return jsonify({
+            "success": True,
+            "message": "Reserva cancelada exitosamente",
+            "data": {"id": id, "estado": "cancelada"}
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
 @reservas_bp.route('/reservas/consultar', methods=['GET'])
 def consultar_reserva():
     """Consulta reservas por email y opcionalmente por código"""
