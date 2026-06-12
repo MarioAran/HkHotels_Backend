@@ -74,7 +74,7 @@ def crear_reserva():
 
 @reservas_bp.route('/reservas/<int:id>/cancelar', methods=['POST'])
 def cancelar_reserva(id):
-    \"\"\"Cancela una reserva por ID (verifica email del cliente)\"\"\"
+    """Cancela una reserva por ID (verifica email del cliente)"""
     datos = request.get_json(silent=True) or {}
     email = datos.get('email', '').strip().lower()
 
