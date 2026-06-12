@@ -46,13 +46,15 @@ def close_db_connection(error=None):
 
 
 def init_db(app):
-    """Inicializa la base de datos y crea las tablas si no existen"""
-    from scripts.init_db import crear_tablas
+    """Inicializa la base de datos, crea tablas y carga datos de ejemplo si está vacía"""
+    from scripts.init_db import crear_tablas, seed_data
     
     with app.app_context():
         try:
             conn = get_db_connection()
             crear_tablas(conn)
+            conn.commit()
+            seed_data(conn)
             conn.commit()
             print("✅ Base de datos inicializada correctamente")
         except Exception as e:
